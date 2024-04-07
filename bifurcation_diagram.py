@@ -22,8 +22,8 @@ if __name__=='__main__':
     kappa  = 0.5                      
     varphi = 0.05                     
     ksi_1  = 0.0                        
-    ksi_2  = 0.0                      
-    p = np.array([Omega, gamma, zeta, alpha, beta, chi, kappa, varphi, ksi_1, ksi_2])    
+    ksi_2  = 0.0            
+    p = np.array([Omega, gamma, zeta, alpha, beta, chi, kappa, varphi, ksi_1, ksi_2])              
     # --------------------------------------------------------------------------
     # Input (simulation parameters)                                                                 
     # --------------------------------------------------------------------------
@@ -49,6 +49,8 @@ if __name__=='__main__':
     OMEGA = np.arange(Omega_i, Omega_f, Omega_inc)   # Excitation Frequency Vector
     # Loop through the values of control parameters (in this case, Omega)    
     for Omg in OMEGA: 
+        # Update control parameter
+        p[0] = Omg
         # Reset variables
         t = t0                          # time
         dt = (2*np.pi/(Omg*nDiv))       # time step        
