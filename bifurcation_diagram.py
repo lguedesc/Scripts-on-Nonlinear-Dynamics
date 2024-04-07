@@ -3,7 +3,7 @@
 # ============================================================================== 
 import numpy as np                            # library for scientific computing   
 import matplotlib.pyplot as plt               # library for plotting
-from runge_kutta import *                     # custom library for ode solvers
+from nldyn import *                     # custom library for ode solvers
 from odesystems import bistable_EH            # custom library for ode systems
 # ==============================================================================
 # Main Program       
