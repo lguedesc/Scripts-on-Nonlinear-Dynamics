@@ -3,7 +3,7 @@
 # ============================================================================== 
 import numpy as np                            # library for scientific computing   
 import matplotlib.pyplot as plt               # library for plotting
-from nldyn import *                     # custom library for ode solvers
+from nldyn import *                           # custom library for ode solvers
 from odesystems import bistable_EH            # custom library for ode systems
 # ==============================================================================
 # Main Program       
@@ -13,11 +13,11 @@ if __name__=='__main__':
     # Input (system constant parameters)                                                                 
     # --------------------------------------------------------------------------
     odesystem = bistable_EH
-    Omega  = 0.0 # Control parameter                      
-    gamma  = 0.5                      
+    Omega  = 0.0                # Control parameter                      
+    gamma  = 0.3                      
     zeta   = 0.025                    
-    alpha  = -1.0                    
-    beta   = 1.0                     
+    alpha  = -0.7                    
+    beta   = 0.25                     
     chi    = 0.05                      
     kappa  = 0.5                      
     varphi = 0.05                     
@@ -27,16 +27,21 @@ if __name__=='__main__':
     # --------------------------------------------------------------------------
     # Input (simulation parameters)                                                                 
     # --------------------------------------------------------------------------
-    tol       = 0.001                    # numerical tolerance for loop
-    Omega_i   = 0.01                     # initial forcing frequency
-    Omega_f   = 0.14 + tol               # final forcing frequency
-    Omega_inc = 5e-4                     # forcing frequency increment
-    nP        = 200                      # number of forcing periods
-    nDiv      = 1000                     # number of divisions per period
-    N         = nP*nDiv                  # number of steps for the integration
-    t0        = 0.0                      # initial time
-    transient = int(0.75*nP)             # step the transient regime ends 
-    init_cond = np.array([-1.0, 0.0, 0.0]) # initial conditions
+    tol          = 0.001                          # numerical tolerance for loop
+    Cpar_i       = 0.01                           # initial forcing frequency
+    Cpar_f       = 2.0                            # final forcing frequency
+    bifurc_steps = 500                            # number of bifurcation steps
+    nP           = 1000                           # number of forcing periods
+    nDiv         = 1000                           # number of divisions per period
+    N            = nP*nDiv                        # number of steps for the integration
+    t0           = 0.0                            # initial time
+    transient    = int(0.75*nP)                   # step the transient regime ends 
+    init_cond    = np.array([-1.0, 0.0, 0.0])     # initial conditions
+    cpar_indx = 0                                 # index of the control parameter (in this case Omega = p[0], so the index is 0)
+    # choose bifurcation mode: "reset_IC" to reset initial conditions in every 
+    # step, or "follow_attractor" to use as initial condition the final condition 
+    # of the previous step
+    bifurc_mode = "reset_IC"    
     # --------------------------------------------------------------------------
     # Inputs (program options)                                                                 
     # --------------------------------------------------------------------------
@@ -44,49 +49,28 @@ if __name__=='__main__':
     #========================================================================#
     # Solution                                                               #
     #========================================================================#    
-    result = []                         # Vector that poincaré map and control parameter
-    x = init_cond                       # set x as initial conditions
-    OMEGA = np.arange(Omega_i, Omega_f, Omega_inc)   # Excitation Frequency Vector
-    # Loop through the values of control parameters (in this case, Omega)    
-    for Omg in OMEGA: 
-        # Update control parameter
-        p[0] = Omg
-        # Reset variables
-        t = t0                          # time
-        dt = (2*np.pi/(Omg*nDiv))       # time step        
-        x = init_cond                   # Comment if you want to vary initial condition based on the evolution of the system
-        print(f'Omg = {Omg}')           # Print to Monitor Progress
-        # Solution of each time series
-        for i in range(nP):
-            for k in range(nDiv):
-                x = rk4(odesystem, x, dt, t, p)             # Call Runge-Kutta 
-                # If is greater than Transient Regime
-                if i > transient:                              
-                    if k == 1:                              # Poincaré Section
-                        result.append([Omg]+list(x))        # Poincaré Map
-                
-                t = t + dt                                  # Increase Time 
-        
-        result_bifurc = np.array(result)                    # Stores All Results
+    n, bifurc_result = bifurcation_diagram(cpar_indx, Cpar_i, Cpar_f, 
+                                           bifurc_steps, nP, nDiv, transient, 
+                                           t0, init_cond, p, odesystem, 
+                                           bifurc_mode = bifurc_mode)
     # --------------------------------------------------------------------------
     # Save the solution                              
     # --------------------------------------------------------------------------
     if save_output_file == True:
-        arq = open("output_bifurcation.csv", "w")
-        arq.write("Var x_poinc xdot_poinc v_poinc\n")
-        for i in range(len(result_bifurc)):
-            arq.write("%f %f %f %f\n" % (result_bifurc[i,0], result_bifurc[i,1], 
-                                         result_bifurc[i,2], result_bifurc[i,3]))
-        arq.close() 
+        file = open("output_bifurcation.csv", "w")
+        file.write("Cpar x[0]_poinc x[1]_poinc x[2]_poinc\n")
+        for i in range(len(bifurc_result)):
+            file.write("%f %f %f %f\n" % (bifurc_result[i,0], bifurc_result[i,1], 
+                                         bifurc_result[i,2], bifurc_result[i,3]))
+        file.close() 
     # --------------------------------------------------------------------------
     # Create figure and plot data
     # --------------------------------------------------------------------------
     plt.close('all')                                        # close all figures
     fig = plt.figure(1, layout = "constrained")
     ax = fig.add_subplot(1,1,1)
-    
-    ax.scatter(result_bifurc[:, 0], result_bifurc[:, 1], s = 1, color = 'black')
-    ax.set_xlabel(r'$f_0$')
+    ax.scatter(bifurc_result[:, 0], bifurc_result[:, 1], s = 1, color = 'black')
+    ax.set_xlabel(r'$Control Parameter$')
     ax.set_ylabel(r'$x$ (Poincaré Map)')
     ax.set_title(r'Bifurcation Diagram')
     
