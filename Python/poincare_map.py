@@ -1,10 +1,10 @@
 # ============================================================================== 
 # Load Libraries
 # ============================================================================== 
-import numpy as np                            # library for scientific computing   
-import matplotlib.pyplot as plt               # library for plotting
-from nldyn import *                           # custom library for ode solvers
-from odesystems import bistable_EH            # custom library for ode systems
+import numpy as np                # famous library for scientific computing   
+import matplotlib.pyplot as plt   # famous library for plotting
+from include.nldyn import *       # custom library for nonlinear analysis 
+from include.odesystems import *  # custom library with ODE systems definitions
 # ==============================================================================
 # Main Program       
 # ==============================================================================

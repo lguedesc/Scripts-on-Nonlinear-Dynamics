@@ -1,3 +1,14 @@
+"""
+--------------------------------------------------------------------------------------------------------------
+This file contains the functions related to ODE solvers. For now, only the classical 4th order Runge-Kutta 
+method is implemented.
+
+Author: Luã G Costa [https://github.com/lguedesc]
+Created: 7 Apr 2024
+Last Update: 5 Feb 2025 
+--------------------------------------------------------------------------------------------------------------
+"""
+
 def rk4(func, x, dt, t, p):
     # This function applies the fourth order Runge-Kutta method.
     # ------------------------------------------------------------------------

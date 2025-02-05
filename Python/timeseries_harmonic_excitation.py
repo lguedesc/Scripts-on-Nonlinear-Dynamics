@@ -1,14 +1,21 @@
 # ============================================================================== 
 # Load Libraries
 # ============================================================================== 
-import numpy as np                            # library for scientific computing   
-import matplotlib.pyplot as plt               # library for plotting
-from nldyn import *                     # custom library for ode solvers
-from odesystems import bistable_EH            # custom library for ode systems
+import numpy as np                # famous library for scientific computing   
+import matplotlib.pyplot as plt   # famous library for plotting
+from include.nldyn import *       # custom library for nonlinear analysis 
+from include.odesystems import *  # custom library with ODE systems definitions
 # ==============================================================================
 # Main Program       
 # ==============================================================================
 if __name__=='__main__':
+    # --------------------------------------------------------------------------
+    # Inputs (main program options)                                                                 
+    # --------------------------------------------------------------------------
+    save_results = False             # Option to save the simulation results 
+    results_file_extension = "csv"   # Extension of the file containing results
+    plot_results = False             # Option to plot results or not
+    plot_only_steady_state = False   # Option to plot only the steady state         
     # --------------------------------------------------------------------------
     # Input (system constant parameters)                                                                 
     # --------------------------------------------------------------------------
@@ -34,26 +41,16 @@ if __name__=='__main__':
     dt     = (2*np.pi/(Omega*nDiv))   # time step
     tf     = nP*2*np.pi/Omega         # final time
     N_tran = int(0.75*N)              # step in which the transient regime ends 
-    init_cond = np.array([np.sqrt(-alpha/beta), 0.0, 0.0]) # initial conditions
-    # --------------------------------------------------------------------------
-    # Inputs (program options)                                                                 
-    # --------------------------------------------------------------------------
-    save_output_file = False          # Option to save the simulation result 
-    plot_only_steady_state = True     # Option to plot only the steady state                                  
+    init_cond = np.array([np.sqrt(-alpha/beta), 0.0, 0.0]) # initial conditions                              
     # --------------------------------------------------------------------------
     # Solution                              
     # --------------------------------------------------------------------------
-    matrix = integrate(t0, dt, N, init_cond, odesystem, p)
+    result = integrate(t0, dt, N, init_cond, odesystem, p)
     # --------------------------------------------------------------------------
     # Save the solution                              
     # --------------------------------------------------------------------------
-    if save_output_file == True:
-        file = open("output_bistable_EH.csv", "w")
-        file.write("time x[0] x[1] x[2]\n")
-        for i in range(N):
-            file.write("%f %f %f %f\n" % (matrix[i,0], matrix[i,1], matrix[i,2], 
-                                          matrix[i,3]))
-        file.close() 
+    if save_results == True:
+        save_timeseries_data(result, odesystem, results_file_extension)
     # --------------------------------------------------------------------------
     # Define the data to plot 
     # --------------------------------------------------------------------------
@@ -62,10 +59,16 @@ if __name__=='__main__':
     else:
         init_plot = 0
     
-    t_plot = matrix[init_plot:N, 0]
-    x0_plot = matrix[init_plot:N, 1]
-    x1_plot = matrix[init_plot:N, 2]
-    x2_plot = matrix[init_plot:N, 3]
+    t_plot = result[init_plot:N, 0]
+    x0_plot = result[init_plot:N, 1]
+    x1_plot = result[init_plot:N, 2]
+    x2_plot = result[init_plot:N, 3]
+    # --------------------------------------------------------------------------
+    # Data Visualization                                                               
+    # --------------------------------------------------------------------------
+    # Timeseries 
+    number_of_plots = result.shape[1] - 1
+    fig, axs = plt.subplots(figsize = (10, 5), nrows = number_of_plots, ncols = 1, sharex = True)
     # --------------------------------------------------------------------------
     # Figure 1                                                               
     # --------------------------------------------------------------------------

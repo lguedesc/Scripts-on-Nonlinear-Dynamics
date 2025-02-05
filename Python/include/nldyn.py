@@ -1,23 +1,18 @@
+"""
+--------------------------------------------------------------------------------------------------------------
+This file contains the implementation of the functions related to the analysis and result visualization of
+dynamical systems simulations using a nonlinear dynamics perspective.
+
+Author: Luã G Costa [https://github.com/lguedesc]
+Created: 7 Apr 2024
+Last Update: 5 Feb 2025 
+--------------------------------------------------------------------------------------------------------------
+"""
+
 import numpy as np
 import sys
-
-def rk4(func, x, dt, t, p):
-    # This function applies the fourth order Runge-Kutta method.
-    # ------------------------------------------------------------------------
-    # Description of function arguments:
-    # func: ODE system that we want to solve
-    # x:    vector containing the current value of the state variables
-    # dt:   step size
-    # t:    current time
-    # p:    array containing the values of constant parameters of the system
-    # ------------------------------------------------------------------------ 
-    # Compute slopes
-    k1 = func(x, t, p)
-    k2 = func(x + (k1*dt/2.0), t + (dt/2.0), p)
-    k3 = func(x + (k2*dt/2.0), t + (dt/2.0), p)
-    k4 = func(x + k3*dt, t + dt, p)
-    # Return average of slopes    
-    return x + dt*(k1 + 2.0*(k2 + k3) + k4)/6.0
+import matplotlib.pyplot as plt   # famous library for plotting
+from include.solvers import *
 
 def integrate(t0, dt, n, x0, func, p):
     # This function apply the steps of integration for the simulation
@@ -43,7 +38,8 @@ def integrate(t0, dt, n, x0, func, p):
         
     return result
 
-def poincare_map(result, integration_result, current_P, current_Div, current_step, pp, nP_trans_end, section = 1):
+def poincare_map(result, integration_result, current_P, current_Div, current_step, pp, nP_trans_end, 
+                 section = 1):
     # This function extracts the Poincaré map while the solution of the
     # simulation is being performed
     # ------------------------------------------------------------------------
@@ -107,7 +103,8 @@ def integrate_and_poincare_map(nP, nDiv, t0, dt, x0, func, p, nP_transient_end):
 
     return int_result, poinc_result
 
-def bifurcation_diagram(Cpar_index, Cpar_i, Cpar_f, bifurc_steps, nP, nDiv, nP_transient_end, t0, init_cond, p, odesystem, bifurc_mode = "follow_attractor"):
+def bifurcation_diagram(Cpar_index, Cpar_i, Cpar_f, bifurc_steps, nP, nDiv, nP_transient_end, t0, init_cond, p, 
+                        odesystem, bifurc_mode = "follow_attractor"):
     # This function constructs the bifurcation diagram of the ODE system 
     # ------------------------------------------------------------------------
     # Description of function arguments:
@@ -183,3 +180,75 @@ def RMS(array):
     RMS_value = np.sqrt(s/len(array))
     # Return the RMS value
     return RMS_value
+
+def save_timeseries_data(matrix, odesystem, extension = "csv"):
+    # Determine the number of state variables
+    nvars = matrix.shape[1] - 1 # Subtract 1 to account for the time column
+    # Open the file
+    file = open(f"timeseries_{odesystem.__name__}.{extension}", "w")
+    # Write the header
+    header = " ".join(["time"] + [f"x[{i}]" for i in range(nvars)]) + "\n"
+    file.write(header)     
+    # Write the data
+    for row in matrix:
+        line = " ".join([f"{value}" for value in row]) + "\n"
+        file.write(line)
+    
+    file.close()
+
+def get_tspan_indexes(result, t_span):
+    if t_span is None:
+        # Full interval
+        ti_index = 0
+        tf_index = -1
+    else:
+        # Find the closest indexes to the given time_interal
+        ti_index = np.abs(result[:, 0] - t_span[0]).argmin()
+        tf_index = np.abs(result[:, 0] - t_span[1]).argmin()
+        
+    return ti_index, tf_index
+
+def visualize_timeseries(result, variables, t_span = None, color = "red", save = False, fig_ext = "pdf", 
+                         fig_quality = 300, fig_name = "timeseries"):
+    # Determine number of plots based on the number of variables
+    nplots = len(variables)
+    # Determine the time interval of the plot
+    ti_index, tf_index = get_tspan_indexes(result, t_span)
+    # Create figure and axes
+    fig, axs = plt.subplots(figsize = (10, 2*nplots), nrows = nplots, 
+                            ncols = 1, sharex = True, layout = "constrained")
+    # Plot results    
+    axs = np.atleast_1d(axs)
+    variables = np.atleast_1d(variables)
+    for i, n in zip(variables, range(nplots)):
+        axs[n].plot(result[ti_index:tf_index, 0], result[ti_index:tf_index, i+1], color = color)
+        axs[n].set_ylabel(f"x[{i}]")
+    
+    axs[-1].set_xlabel(f"t")
+    # Save figure if requested
+    if save == True:
+        plt.savefig(f"{fig_name}.{fig_ext}", dpi = fig_quality)
+    
+    return fig, axs
+        
+def visualize_phase_subspaces(result, variable_sets, t_span = None, color = "blue", save = False, 
+                              fig_ext = "pdf", fig_quality = 300, fig_name = "phase_subspaces"):    
+    # Get number of plots based on number variable sets
+    nplots = len(variable_sets)
+    # Determine the time interval of the plot
+    ti_index, tf_index = get_tspan_indexes(result, t_span)
+    # Create figure and axes
+    fig, axs = plt.subplots(figsize = (3*nplots, 2), nrows = 1, ncols = nplots,
+                            layout = "constrained")
+    # Plot results 
+    axs = np.atleast_1d(axs)
+    for i in range(len(variable_sets)):
+        axs[i].plot(result[ti_index:tf_index, variable_sets[i][0] + 1], 
+                    result[ti_index:tf_index, variable_sets[i][1] + 1], color = color)
+        axs[i].set_ylabel(f"x[{variable_sets[i][1]}]")
+        axs[i].set_xlabel(f"x[{variable_sets[i][0]}]")
+        # Save figure if requested
+    if save == True:
+        plt.savefig(f"{fig_name}.{fig_ext}", dpi = fig_quality)
+    
+    return fig, axs
