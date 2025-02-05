@@ -1,0 +1,61 @@
+alpha = -1.50 | beta = 1.80
+Overall Average Electrical Output Power      = 0.0156875
+Overall RMS Electrical Output Power          = 0.0212086
+Overall RMS Mechanical Input Power           = 0.5556905
+Steady State Average Electrical Output Power = 0.0183468
+Steady State RMS Electrical Output Power     = 0.0237923
+Steady State RMS Mechanical Input Power      = 0.6316153
+ 
+ 
+alpha = -1.15 | beta = 0.90
+Overall Average Electrical Output Power      = 0.0026967
+Overall RMS Electrical Output Power          = 0.0058575
+Overall RMS Mechanical Input Power           = 0.1621724
+Steady State Average Electrical Output Power = 0.0016318
+Steady State RMS Electrical Output Power     = 0.0021505
+Steady State RMS Mechanical Input Power      = 0.1504856
+ 
+ 
+alpha = -1.20 | beta = 0.50
+Overall Average Electrical Output Power      = 0.0037634
+Overall RMS Electrical Output Power          = 0.0079897
+Overall RMS Mechanical Input Power           = 0.2107580
+Steady State Average Electrical Output Power = 0.0030189
+Steady State RMS Electrical Output Power     = 0.0047568
+Steady State RMS Mechanical Input Power      = 0.2059103
+ 
+ 
+alpha = -1.05 | beta = 1.04
+Overall Average Electrical Output Power      = 0.0045360
+Overall RMS Electrical Output Power          = 0.0082867
+Overall RMS Mechanical Input Power           = 0.1670255
+Steady State Average Electrical Output Power = 0.0015162
+Steady State RMS Electrical Output Power     = 0.0020856
+Steady State RMS Mechanical Input Power      = 0.1335639
+ 
+ 
+alpha = -1.39 | beta = 1.16
+Overall Average Electrical Output Power      = 0.0129926
+Overall RMS Electrical Output Power          = 0.0154426
+Overall RMS Mechanical Input Power           = 0.2261755
+Steady State Average Electrical Output Power = 0.0132415
+Steady State RMS Electrical Output Power     = 0.0153940
+Steady State RMS Mechanical Input Power      = 0.2249269
+ 
+ 
+alpha = -1.50 | beta = 0.63
+Overall Average Electrical Output Power      = 0.0252179
+Overall RMS Electrical Output Power          = 0.0300438
+Overall RMS Mechanical Input Power           = 0.2916506
+Steady State Average Electrical Output Power = 0.0251391
+Steady State RMS Electrical Output Power     = 0.0298704
+Steady State RMS Mechanical Input Power      = 0.2923325
+ 
+ 
+alpha = -1.90 | beta = 1.40
+Overall Average Electrical Output Power      = 0.0127216
+Overall RMS Electrical Output Power          = 0.0173485
+Overall RMS Mechanical Input Power           = 0.2849822
+Steady State Average Electrical Output Power = 0.0127365
+Steady State RMS Electrical Output Power     = 0.0172414
+Steady State RMS Mechanical Input Power      = 0.2834469

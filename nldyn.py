@@ -1,16 +1,7 @@
 import numpy as np
 import sys
 
-def rk4(func, x, dt, t, p):
-    # This function applies the fourth order Runge-Kutta method.
-    # ------------------------------------------------------------------------
-    # Description of function arguments:
-    # func: ODE system that we want to solve
-    # x:    vector containing the current value of the state variables
-    # dt:   step size
-    # t:    current time
-    # p:    array containing the values of constant parameters of the system
-    # ------------------------------------------------------------------------ 
+def rk4(func, x, dt, t, p): 
     # Compute slopes
     k1 = func(x, t, p)
     k2 = func(x + (k1*dt/2.0), t + (dt/2.0), p)
@@ -20,15 +11,6 @@ def rk4(func, x, dt, t, p):
     return x + dt*(k1 + 2.0*(k2 + k3) + k4)/6.0
 
 def integrate(t0, dt, n, x0, func, p):
-    # This function apply the steps of integration for the simulation
-    # ------------------------------------------------------------------------
-    # Description of function arguments:
-    # t0:   initial time
-    # x0:   vector containing the initial conditions (initial state variables)
-    # n:    number of integration steps
-    # func: system of first order ODEs to be solved
-    # p:    array containing the values of constant parameters of the system
-    # ------------------------------------------------------------------------
     # Create array with the size of data full of zeros
     result = np.zeros((n + 1, len(x0) + 1))
     # Assign the first row of result with the initial conditions and initial time
@@ -40,7 +22,7 @@ def integrate(t0, dt, n, x0, func, p):
         result[i + 1, 1:] = rk4(func, result[i, 1:], dt, result[i, 0], p)
         # Update time
         result[i + 1, 0] = result[i, 0] + dt        
-        
+    
     return result
 
 def poincare_map(result, integration_result, current_P, current_Div, current_step, pp, nP_trans_end, section = 1):
@@ -183,3 +165,18 @@ def RMS(array):
     RMS_value = np.sqrt(s/len(array))
     # Return the RMS value
     return RMS_value
+
+def save_timeseries_data(matrix, odesystem, extension = ".csv"):
+    # Determine the number of state variables
+    nvars = matrix.shape[1] - 1 # Subtract 1 to account for the time column
+    # Open the file
+    file = open(f"timeseries_{odesystem.__name__}{extension}", "w")
+    # Write the header
+    header = " ".join(["time"] + [f"x[{i}]" for i in range(nvars)]) + "\n"
+    file.write(header)     
+    # Write the data
+    for row in matrix:
+        line = " ".join([f"{value}" for value in row]) + "\n"
+        file.write(line)
+    
+    file.close()
