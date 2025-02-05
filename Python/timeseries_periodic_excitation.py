@@ -1,3 +1,60 @@
+"""
+--------------------------------------------------------------------------------------------------------------
+This script simulates a dynamical system over a given time span. In this specific case, the integration's 
+final time is not explicitly defined. Instead, it is determined by the period of a periodic excitation 
+function that the system is subjected to.
+
+This approach allows the definition of an excitation period T. An example of such a periodic excitation 
+function is shown below, where f_e represents the excitation function and t denotes time:
+
+                        T                                             T   
+  |<------------------------------------------>|<------------------------------------------>| 
+                                               |                                            |
+  f_e                                          |                                            |
+  ^                                            |                                            |
+  |                           /‾‾‾‾‾‾‾‾‾‾‾\    |                          /‾‾‾‾‾‾‾‾‾‾‾\     |   
+  |                          /             \   |                         /             \    |
+  |                         /               \  |                        /               \   |
+  |                        /                 \ |                       /                 \  |
+  |                       /                   \|                      /                   \ |
+  |\---------------------/---------------------\---------------------/---------------------\--------> t
+  | \                   /                       \                   /                       \
+  |  \                 /                         \                 /                         \
+  |   \               /                           \               /                           \
+  |    \             /                             \             /                             \
+  |     \___________/                               \___________/                               \___ ...
+  |
+
+The number of integration steps is determined by multiplying the number of excitation periods by the number 
+of steps within each period (i.e., the number of divisions per excitation period). This is illustrated below, 
+where a period is divided into 4 parts and there are 2 excitation periods. Thus, the total number of 
+integration steps is N = 4 * 2 = 8. The final integration time, tf, depends on the size of the period (or the
+number of divisions per period).
+
+                        T                                             T   
+  |<-------->|<-------->|<-------->|<--------->|<------------------------------------------>| 
+     1st div |  2nd div |  3rd div |  4th div  |                                            |
+  f_e        |          |          |           |                                            |
+  ^          |          |          |           |                                            |
+  |          |          |     /‾‾‾‾|‾‾‾‾‾‾\    |                          /‾‾‾‾‾‾‾‾‾‾‾\     |   
+  |          |          |    /     |       \   |                         /             \    |
+  |          |          |   /      |        \  |                        /               \   |
+  |          |          |  /       |         \ |                       /                 \  |
+  |          |          | /        |          \|                      /                   \ |
+  |\---------------------/---------------------\---------------------/---------------------\--------> t
+  | \                   /                       \                   /                       
+  |  \                 /                         \                 /                         
+  |   \               /                           \               /                           
+  |    \             /                             \             /                             
+  |     \___________/                               \___________/                               
+  |
+
+Author: Luã G Costa [https://github.com/lguedesc]
+Created: 7 Apr 2024
+Last Update: 5 Feb 2025 
+--------------------------------------------------------------------------------------------------------------
+"""
+
 # ============================================================================== 
 # Load Libraries
 # ============================================================================== 

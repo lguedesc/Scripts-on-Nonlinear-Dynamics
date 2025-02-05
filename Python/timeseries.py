@@ -55,7 +55,9 @@ if __name__=='__main__':
     # --------------------------------------------------------------------------
     if plot_results == True:
         t_span = [10, 40]
-        visualize_timeseries(result, [2, 0, 1], t_span = t_span, save = save_plot)
-        visualize_phase_subspaces(result, [[0,1], [0,2], [1,2]], t_span = t_span, save = save_plot)
+        visualize_timeseries(result, [2, 0, 1], t_span = t_span, 
+                             save = save_plot)
+        visualize_phase_subspaces(result, [[0,1], [0,2], [1,2]], 
+                                  t_span = t_span, save = save_plot)
         plt.show()
     
