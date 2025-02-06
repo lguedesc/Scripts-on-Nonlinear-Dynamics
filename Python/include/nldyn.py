@@ -181,6 +181,31 @@ def RMS(array):
     # Return the RMS value
     return RMS_value
 
+def define_period_of_excitation(angular_freq_list):
+    # Transform freq_list into array even if it is a scalar
+    angular_freqs = np.atleast_1d(angular_freq_list)
+    # Check how many frequencies the signal is composed of
+    if len(angular_freqs) == 1: # For single frequency
+        # Define fundamental period of excitation
+        T = 2*np.pi/angular_freqs[0]
+    elif len(angular_freqs) > 1: # For multiple frequency components
+        # Find the number of decimal places needed for dynamic scaling to 
+        # frequencies to integer numbers
+        decimal_places = -np.log10(angular_freqs.min())
+        # Determine precision scaling to a power of 10 to fully eliminate 
+        # decimals
+        precision = 10 ** np.ceil(decimal_places)
+        # Create scaled angular freqs array and convert to int
+        angular_freqs_scaled = (angular_freqs * precision).astype(int)
+        # Least common multiple (LCM) to find the common period of excitation
+        lcm_freq = np.lcm.reduce(angular_freqs_scaled)
+        T = 2*np.pi/(float(lcm_freq)/precision)
+    else:
+        print("Error: Invalid 'angular_freq_list' argument in 'define_period_of_excitation()' function.")
+        exit()
+        
+    return T
+
 def save_timeseries_data(matrix, odesystem, extension = "csv"):
     # Determine the number of state variables
     nvars = matrix.shape[1] - 1 # Subtract 1 to account for the time column

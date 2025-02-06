@@ -39,7 +39,7 @@ if __name__=='__main__':
     t0     = 0.0                           # initial time
     dt     = 0.01                          # time step
     tf     = 100.0                         # final time 
-    N      = int(tf/dt)                         # number of integration time steps
+    N      = int(tf/dt)                    # number of integration time steps
     IC     = np.array([0.0, 1.0, 1.05])    # initial conditions                              
     # --------------------------------------------------------------------------
     # Solution                              
