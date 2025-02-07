@@ -13,20 +13,23 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt   # famous library for plotting
 from include.solvers import *
-
+# ------------------------------------------------------------------------------
+# Solution methods and nonlinear dynamics tools
+# ------------------------------------------------------------------------------
 def integrate(t0, dt, n, x0, func, p):
+    # --------------------------------------------------------------------------
     # This function apply the steps of integration for the simulation
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Description of function arguments:
     # t0:   initial time
     # x0:   vector containing the initial conditions (initial state variables)
     # n:    number of integration steps
     # func: system of first order ODEs to be solved
     # p:    array containing the values of constant parameters of the system
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Create array with the size of data full of zeros
     result = np.zeros((n + 1, len(x0) + 1))
-    # Assign the first row of result with the initial conditions and initial time
+    # Assign the first result row with initial conditions and time
     result[0, 0] = t0
     result[0, 1:] = x0
     # Integrate over the number of steps
@@ -38,11 +41,37 @@ def integrate(t0, dt, n, x0, func, p):
         
     return result
 
-def poincare_map(result, integration_result, current_P, current_Div, current_step, pp, nP_trans_end, 
-                 section = 1):
+def define_period_of_excitation(angular_freq_list):
+    # Transform freq_list into array even if it is a scalar
+    angular_freqs = np.atleast_1d(angular_freq_list)
+    # Check how many frequencies the signal is composed of
+    if len(angular_freqs) == 1: # For single frequency
+        # Define fundamental period of excitation
+        T = 2*np.pi/angular_freqs[0]
+    elif len(angular_freqs) > 1: # For multiple frequency components
+        # Find the number of decimal places needed for dynamic scaling to 
+        # frequencies to integer numbers
+        decimal_places = -np.log10(angular_freqs.min())
+        # Determine precision scaling to a power of 10 to fully eliminate 
+        # decimals
+        precision = 10 ** np.ceil(decimal_places)
+        # Create scaled angular freqs array and convert to int
+        angular_freqs_scaled = (angular_freqs * precision).astype(int)
+        # Least common multiple (LCM) to find the common period of excitation
+        lcm_freq = np.lcm.reduce(angular_freqs_scaled)
+        T = 2*np.pi/(float(lcm_freq)/precision)
+    else:
+        print("Error: Invalid 'angular_freq_list' argument in 'define_period_of_excitation()' function.")
+        exit()
+        
+    return T
+
+def poincare_map_periodic_excitation(result, integration_result, 
+                                     current_P, current_Div, current_step, pp, 
+                                     nP_trans_end, section = 1):
     # This function extracts the Poincaré map while the solution of the
     # simulation is being performed
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Description of function arguments:
     # result:             matrix that contains the result of the poincaré map
     # integration_result: matrix that contains the result of the integration
@@ -51,8 +80,8 @@ def poincare_map(result, integration_result, current_P, current_Div, current_ste
     # current_step:       current_step in the analysis
     # pp:                 monitor of the position in the result vector
     # nP_trans_end:       forcing period that the transient state ends
-    # section:            Poincaré section (it must be a value between 0 and nDiv)
-    # ------------------------------------------------------------------------
+    # section:            Poincaré section (must be a value between 0 and nDiv)
+    # --------------------------------------------------------------------------
     # If the current period is greater or equal the nP_trans_end   
     if (current_P >= nP_trans_end):  
         # Determine poincaré Section (where in a single period the values of 
@@ -68,9 +97,9 @@ def poincare_map(result, integration_result, current_P, current_Div, current_ste
     return pp, result
 
 def integrate_and_poincare_map(nP, nDiv, t0, dt, x0, func, p, nP_transient_end):
-    # This function solves the system of ODEs and extracts the Poincaré map while 
-    # the simulation is being performed
-    # ------------------------------------------------------------------------
+    # This function solves the system of ODEs and extracts the Poincaré map 
+    # while the simulation is being performed
+    # --------------------------------------------------------------------------
     # Description of function arguments:
     # nP:                 number of forcing periods
     # nDiv:               number of divisions per forcing period
@@ -80,7 +109,7 @@ def integrate_and_poincare_map(nP, nDiv, t0, dt, x0, func, p, nP_transient_end):
     # func:               1st order ODE system to be solved
     # p:                  array with the contant parameters of the ODE system
     # nP_trans_end:       forcing period that the transient state ends
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Allocate arrays to store result of integration and poincaré map
     int_result = np.zeros((nP*nDiv + 1, len(x0) + 1))
     poinc_result = np.zeros((nP - nP_transient_end, len(x0) + 1))
@@ -94,8 +123,12 @@ def integrate_and_poincare_map(nP, nDiv, t0, dt, x0, func, p, nP_transient_end):
     for j in range(nP):
         for k in range(nDiv):
             # Solve for state variables
-            int_result[i + 1, 1:] = rk4(func, int_result[i, 1:], dt, int_result[i, 0], p)
-            pp, poinc_result = poincare_map(poinc_result, int_result, j, k, i, pp, nP_transient_end)
+            int_result[i + 1, 1:] = rk4(func, int_result[i, 1:], dt, 
+                                        int_result[i, 0], p)
+            pp, poinc_result = poincare_map_periodic_excitation(poinc_result, 
+                                                                int_result, 
+                                                                j, k, i, pp, 
+                                                                nP_transient_end)
             # Update time
             int_result[i + 1, 0] = int_result[i, 0] + dt
             # Update counter
@@ -106,7 +139,7 @@ def integrate_and_poincare_map(nP, nDiv, t0, dt, x0, func, p, nP_transient_end):
 def bifurcation_diagram(Cpar_index, Cpar_i, Cpar_f, bifurc_steps, nP, nDiv, nP_transient_end, t0, init_cond, p, 
                         odesystem, bifurc_mode = "follow_attractor"):
     # This function constructs the bifurcation diagram of the ODE system 
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Description of function arguments:
     # Cpar_index:       the index of the parameter, p, used as control parameter
     # Cpar_i:           initial control parameter
@@ -125,11 +158,11 @@ def bifurcation_diagram(Cpar_index, Cpar_i, Cpar_f, bifurc_steps, nP, nDiv, nP_t
     #                   initial condition for the next bifurcation step; 
     #                   "reset_IC" to reset the initial condition at every
     #                   bifurcation step) 
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # OBSERVATION:      p[0] must be the excitation frequency used in the 
     #                   1st order ODE system. It only works properly that way
     #                   because of the time step that depends on p[0].
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Declare array that holds the value of all bifurcation steps
     Cpar = np.linspace(Cpar_i, Cpar_f, bifurc_steps, endpoint=True) 
     # Determine size of each poincare section to and use it to allocate an array for the bifurcation result 
@@ -170,57 +203,41 @@ def bifurcation_diagram(Cpar_index, Cpar_i, Cpar_f, bifurc_steps, nP, nDiv, nP_t
         
     # Return the row monitor and the result of the bifurcation
     return n, bifurc_result
-        
-def RMS(array):
-    # Compute the square value of all cells in the array
-    squared_values = (array**2)
-    # Sum all the square_values
-    s = sum(squared_values)
-    # Compute the RMS value
-    RMS_value = np.sqrt(s/len(array))
-    # Return the RMS value
-    return RMS_value
-
-def define_period_of_excitation(angular_freq_list):
-    # Transform freq_list into array even if it is a scalar
-    angular_freqs = np.atleast_1d(angular_freq_list)
-    # Check how many frequencies the signal is composed of
-    if len(angular_freqs) == 1: # For single frequency
-        # Define fundamental period of excitation
-        T = 2*np.pi/angular_freqs[0]
-    elif len(angular_freqs) > 1: # For multiple frequency components
-        # Find the number of decimal places needed for dynamic scaling to 
-        # frequencies to integer numbers
-        decimal_places = -np.log10(angular_freqs.min())
-        # Determine precision scaling to a power of 10 to fully eliminate 
-        # decimals
-        precision = 10 ** np.ceil(decimal_places)
-        # Create scaled angular freqs array and convert to int
-        angular_freqs_scaled = (angular_freqs * precision).astype(int)
-        # Least common multiple (LCM) to find the common period of excitation
-        lcm_freq = np.lcm.reduce(angular_freqs_scaled)
-        T = 2*np.pi/(float(lcm_freq)/precision)
-    else:
-        print("Error: Invalid 'angular_freq_list' argument in 'define_period_of_excitation()' function.")
-        exit()
-        
-    return T
-
-def save_timeseries_data(matrix, odesystem, extension = "csv"):
+# ------------------------------------------------------------------------------
+# Save results functions
+# ------------------------------------------------------------------------------
+def save_timeseries_data(results, odesystem, extension = "csv", decimal_precision = 10):
     # Determine the number of state variables
-    nvars = matrix.shape[1] - 1 # Subtract 1 to account for the time column
+    nvars = results.shape[1] - 1 # Subtract 1 to account for the time column
     # Open the file
     file = open(f"timeseries_{odesystem.__name__}.{extension}", "w")
     # Write the header
     header = " ".join(["time"] + [f"x[{i}]" for i in range(nvars)]) + "\n"
     file.write(header)     
     # Write the data
-    for row in matrix:
-        line = " ".join([f"{value}" for value in row]) + "\n"
+    for row in results:
+        line = " ".join([f"{value:.{decimal_precision}f}" for value in row]) + "\n"
         file.write(line)
     
     file.close()
-
+    
+def save_poincare_map_data(results, odesystem, extension = "csv", decimal_precision = 10):
+    # Determine the number of state variables
+    nvars = results.shape[1] - 1 # Subtract 1 to account for the time column
+    # Open the file
+    file = open(f"poincare_map_{odesystem.__name__}.{extension}", "w")
+    # Write the header
+    header = " ".join(["time"] + [f"x[{i}]" for i in range(nvars)]) + "\n"
+    file.write(header)     
+    # Write the data
+    for row in results:
+        line = " ".join([f"{value:.{decimal_precision}f}" for value in row]) + "\n"
+        file.write(line)
+    
+    file.close()
+# ------------------------------------------------------------------------------
+# Data visualization functions
+# ------------------------------------------------------------------------------
 def get_tspan_indexes(result, t_span):
     if t_span is None:
         # Full interval
@@ -252,21 +269,22 @@ def visualize_timeseries(result, variables, t_span = None, color = "red", save =
     axs[-1].set_xlabel(f"t")
     # Save figure if requested
     if save == True:
-        plt.savefig(f"{fig_name}.{fig_ext}", dpi = fig_quality)
+        fig.savefig(f"{fig_name}.{fig_ext}", dpi = fig_quality)
     
     return fig, axs
         
 def visualize_phase_subspaces(result, variable_sets, t_span = None, color = "blue", save = False, 
                               fig_ext = "pdf", fig_quality = 300, fig_name = "phase_subspaces"):    
-    # Get number of plots based on number variable sets
+    # Get number of plots based on the number of variable sets
     nplots = len(variable_sets)
     # Determine the time interval of the plot
     ti_index, tf_index = get_tspan_indexes(result, t_span)
     # Create figure and axes
     fig, axs = plt.subplots(figsize = (3*nplots, 2), nrows = 1, ncols = nplots,
                             layout = "constrained")
-    # Plot results 
+    # Ensure axs is an array
     axs = np.atleast_1d(axs)
+    # Plot results 
     for i in range(len(variable_sets)):
         axs[i].plot(result[ti_index:tf_index, variable_sets[i][0] + 1], 
                     result[ti_index:tf_index, variable_sets[i][1] + 1], color = color)
@@ -274,6 +292,47 @@ def visualize_phase_subspaces(result, variable_sets, t_span = None, color = "blu
         axs[i].set_xlabel(f"x[{variable_sets[i][0]}]")
         # Save figure if requested
     if save == True:
-        plt.savefig(f"{fig_name}.{fig_ext}", dpi = fig_quality)
+        fig.savefig(f"{fig_name}.{fig_ext}", dpi = fig_quality)
     
     return fig, axs
+
+def visualize_poincare_map(result, variable_sets, color = "black", axs = None, save = False, 
+                           fig_ext = "pdf", fig_quality = 300, fig_name = "poincare"):
+    # ------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
+    # Get number of plots based on the number of variable sets
+    nplots = len(variable_sets)
+    # define a step variable fig
+    fig = None
+    if axs is None:
+        # Create figure and axes
+        fig, axs = plt.subplots(figsize = (3*nplots, 2), nrows = 1, 
+                                ncols = nplots, layout = "constrained")
+    # Ensure axs in an array
+    axs = np.atleast_1d(axs)
+    # Plot results
+    for i in range(len(variable_sets)):
+        axs[i].scatter(result[:, variable_sets[i][0] + 1], 
+                       result[:, variable_sets[i][1] + 1], color = color,
+                       zorder = 10)
+        axs[i].set_ylabel(f"x[{variable_sets[i][1]}]")
+        axs[i].set_xlabel(f"x[{variable_sets[i][0]}]")
+    # Save figure
+    if save == True:
+        if fig == None: 
+            fig = axs[0].get_figure()
+        fig.savefig(f"{fig_name}.{fig_ext}", dpi = fig_quality)
+    
+    return fig, axs
+# ------------------------------------------------------------------------------
+# Other functions
+# ------------------------------------------------------------------------------
+def RMS(array):
+    # Compute the square value of all cells in the array
+    squared_values = (array**2)
+    # Sum all the square_values
+    s = sum(squared_values)
+    # Compute the RMS value
+    RMS_value = np.sqrt(s/len(array))
+    # Return the RMS value
+    return RMS_value

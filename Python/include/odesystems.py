@@ -85,7 +85,7 @@ def bistable_EH_multi_freq(x, t, p):
     # p:    array containing the values of constant parameters of the system
     # ------------------------------------------------------------------------
     # Parameters:
-    # p[0]: Omega      (excitation frequency)
+    # p[0]: Omega_1    (excitation frequency)
     # p[1]: gamma      (excitation amplitude)
     # p[2]: zeta       (mechanical dissipation)
     # p[3]: alpha      (first restitution coefficient)
@@ -95,7 +95,7 @@ def bistable_EH_multi_freq(x, t, p):
     # p[7]: varphi     (electrical conductance -> 1/resistance)
     # p[8]: varepsilon (first nonlinear coupling)
     # p[9]: mu         (second nonlinear coupling)
-    # p[10]: Omega_2   
+    # p[10]: Omega_2   (second excitation frequency)
     # ------------------------------------------------------------------------
     # State Variables:
     # x[0]: displacement

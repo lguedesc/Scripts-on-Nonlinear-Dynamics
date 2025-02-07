@@ -77,15 +77,16 @@ if __name__=='__main__':
     # --------------------------------------------------------------------------
     # Inputs (main program options)                                                                 
     # --------------------------------------------------------------------------
-    save_results = False             # Option to save the simulation results 
+    save_results = False            # Option to save the simulation results 
     results_file_extension = "csv"  # Extension of the file containing results
     plot_results = True             # Option to plot results or not     
     save_plot = True                # Option to save plot image
+    fig_extension = "pdf"           # Plot image extension (if saved)
     # --------------------------------------------------------------------------
     # Input (system constant parameters)                                                                 
     # --------------------------------------------------------------------------
     odesystem = bistable_EH_multi_freq
-    Omega      = 1.6                      
+    Omega_1    = 1.6                      
     gamma      = 0.5                      
     zeta       = 0.025                    
     alpha      = -1.05                    
@@ -96,13 +97,13 @@ if __name__=='__main__':
     varepsilon = 0.0                        
     mu         = 0.0
     Omega_2    = 0.5                      
-    p = np.array([Omega, gamma, zeta, alpha, beta, chi, kappa, varphi, 
+    p = np.array([Omega_1, gamma, zeta, alpha, beta, chi, kappa, varphi, 
                   varepsilon, mu, Omega_2])
     # --------------------------------------------------------------------------
     # Input (simulation parameters)                                                                 
     # --------------------------------------------------------------------------
-    Omegas = [Omega, Omega_2]
-    nP     = 2000                             # number of excitation periods
+    Omegas = [Omega_1, Omega_2]                 # excitation frequencies
+    nP     = 2000                               # number of excitation periods
     nDiv   = 1000                               # divisions per period
     N      = nP*nDiv                            # number of integration steps 
     T      = define_period_of_excitation(Omegas) # period of excitation
@@ -127,7 +128,8 @@ if __name__=='__main__':
         t_span = [N_tran*dt, tf]
         #t_span = None
         visualize_timeseries(result, [0, 1, 2], t_span = t_span, 
-                             save = save_plot)
+                             save = save_plot, fig_ext = fig_extension)
         visualize_phase_subspaces(result, [[0,1], [0,2], [1,2]], 
-                                  t_span = t_span, save = save_plot)
+                                  t_span = t_span, save = save_plot,
+                                  fig_ext = fig_extension)
         plt.show()

@@ -4,7 +4,7 @@ This script performs the simulation of a dynamical system across a given time sp
 
 Author: Luã G Costa [https://github.com/lguedesc]
 Created: 7 Apr 2024
-Last Update: 5 Feb 2025 
+Last Update: 6 Feb 2025 
 --------------------------------------------------------------------------------------------------------------
 """
 # ============================================================================== 
@@ -24,6 +24,7 @@ if __name__=='__main__':
     results_file_extension = "csv"  # Extension of the file containing results
     plot_results = True             # Option to plot results or not
     save_plot = True                # Option to save plot figures
+    fig_extension = "pdf"           # Plot image extension (if saved)
     # --------------------------------------------------------------------------
     # Input (system constant parameters)                                                                 
     # --------------------------------------------------------------------------
@@ -56,8 +57,9 @@ if __name__=='__main__':
     if plot_results == True:
         t_span = [10, 40]
         visualize_timeseries(result, [2, 0, 1], t_span = t_span, 
-                             save = save_plot)
+                             save = save_plot, fig_ext = fig_extension)
         visualize_phase_subspaces(result, [[0,1], [0,2], [1,2]], 
-                                  t_span = t_span, save = save_plot)
+                                  t_span = t_span, save = save_plot,
+                                  fig_ext = fig_extension)
         plt.show()
     
