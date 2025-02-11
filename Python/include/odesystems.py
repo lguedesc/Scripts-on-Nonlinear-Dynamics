@@ -4,7 +4,7 @@ All the dynamical system definitions are provided in this file.
 
 Author: Luã G Costa [https://github.com/lguedesc]
 Created: 7 Apr 2024
-Last Update: 6 Feb 2025 
+Last Update: 8 Feb 2025 
 --------------------------------------------------------------------------------------------------------------
 """
 
@@ -110,5 +110,46 @@ def bistable_EH_multi_freq(x, t, p):
     f[0] = x[1]
     f[1] = - xb - 2.0*p[2]*x[1] - p[3]*x[0] - p[4]*(x[0]**3) + p[5]*(1 + p[8]*np.abs(x[0]) + p[9]*(x[0]**2))*x[2]
     f[2] = -p[6]*(1 + p[8]*np.abs(x[0]) + p[9]*(x[0]**2))*x[1] - p[7]*x[2]
+    
+    return f
+
+def henon_heiles(x, t, p):
+    # This function defines the ODE system (Hénon-Heiles system)
+    # Type: autonomous
+    # ------------------------------------------------------------------------
+    # State Variables:
+    # x[0]: x1
+    # x[1]: y1
+    # x[2]: x2
+    # x[3]: y2
+    # ------------------------------------------------------------------------ 
+    # Create an array full of zeros
+    f = np.zeros(len(x))
+    # Define system of first order ODEs
+    f[0] = x[1]
+    f[1] = - x[0] - 2*x[0]*x[2]
+    f[2] = x[3]
+    f[3] = - x[0]*x[0] + x[2]*x[2] - x[2]
+    
+    return f
+
+def henon_heiles_poinc(x, t, p):
+    # This function defines the ODE system (Hénon-Heiles system)
+    # Type: autonomous
+    # ------------------------------------------------------------------------
+    # State Variables:
+    # x[0]: x1
+    # x[1]: y1
+    # x[2]: x2
+    # x[3]: y2
+    # ------------------------------------------------------------------------ 
+    # Create an array full of zeros
+    f = np.zeros(len(x))
+    fN = - x[0]*x[0] + x[2]*x[2] - x[2]
+    # Define system of first order ODEs
+    f[0] = x[1]/fN
+    f[1] = (- x[0] - 2*x[0]*x[2])/fN
+    f[2] = x[3]/fN
+    f[3] = 1/fN
     
     return f

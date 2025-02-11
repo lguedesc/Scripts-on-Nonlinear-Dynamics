@@ -110,8 +110,8 @@ if __name__=='__main__':
     t0     = 0.0                                # initial time
     dt     = T/nDiv                             # time step (T/nDiv)
     tf     = N*dt                               # final time (N*dt)
-    N_tran = int(0.75*N)                        # step when transient state ends 
-    IC     = np.array([np.sqrt(-alpha/beta), 0.0, 0.0]) # initial conditions                              
+    N_tran = int(0.75*N)                        # step when transient state ends
+    IC     = np.array([np.sqrt(-alpha/beta), 0.0, 0.0]) # initial conditions
     # --------------------------------------------------------------------------
     # Solution                              
     # --------------------------------------------------------------------------

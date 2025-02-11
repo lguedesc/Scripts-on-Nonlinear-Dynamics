@@ -10,13 +10,20 @@ Last Update: 5 Feb 2025
 """
 
 import numpy as np
-import sys
+from numpy.typing import NDArray
+from typing import Callable
 import matplotlib.pyplot as plt   # famous library for plotting
 from include.solvers import *
 # ------------------------------------------------------------------------------
 # Solution methods and nonlinear dynamics tools
 # ------------------------------------------------------------------------------
-def integrate(t0, dt, n, x0, func, p):
+def integrate(t0: float, 
+              dt: float, 
+              n: int, 
+              x0: NDArray[np.float64], 
+              func: Callable[[NDArray[np.float64], float, NDArray[np.float64]], 
+                             NDArray[np.float64]], 
+              p: NDArray[np.float64]) -> NDArray[np.float64]:
     # --------------------------------------------------------------------------
     # This function apply the steps of integration for the simulation
     # --------------------------------------------------------------------------
@@ -27,23 +34,37 @@ def integrate(t0, dt, n, x0, func, p):
     # func: system of first order ODEs to be solved
     # p:    array containing the values of constant parameters of the system
     # --------------------------------------------------------------------------
+    # Returns:
+    # The solution of the numerical integration in array format (time + state
+    # variables)
+    # --------------------------------------------------------------------------
     # Create array with the size of data full of zeros
-    result = np.zeros((n + 1, len(x0) + 1))
-    # Assign the first result row with initial conditions and time
-    result[0, 0] = t0
-    result[0, 1:] = x0
+    sol = np.zeros((n + 1, len(x0) + 1))
+    # Assign the first sol row with initial conditions and time
+    sol[0, 0] = t0
+    sol[0, 1:] = x0
     # Integrate over the number of steps
     for i in range(n):
         # Solve for state variables
-        result[i + 1, 1:] = rk4(func, result[i, 1:], dt, result[i, 0], p)
+        sol[i + 1, 1:] = rk4(func, sol[i, 1:], dt, sol[i, 0], p)
         # Update time
-        result[i + 1, 0] = result[i, 0] + dt        
+        sol[i + 1, 0] = sol[i, 0] + dt        
         
-    return result
+    return sol
 
-def define_period_of_excitation(angular_freq_list):
+def define_period_of_excitation(angular_freqs: list) -> float:
+    # --------------------------------------------------------------------------
+    # This function determines the period of excitation of a periodic excitation
+    # function based on its defined frequencies. 
+    # --------------------------------------------------------------------------
+    # Description of function arguments:
+    # angular_freqs: list with all frequencies composing the excitation function
+    # --------------------------------------------------------------------------
+    # Returns
+    # The period of excitation, T
+    # --------------------------------------------------------------------------
     # Transform freq_list into array even if it is a scalar
-    angular_freqs = np.atleast_1d(angular_freq_list)
+    angular_freqs = np.atleast_1d(angular_freqs)
     # Check how many frequencies the signal is composed of
     if len(angular_freqs) == 1: # For single frequency
         # Define fundamental period of excitation
@@ -66,76 +87,48 @@ def define_period_of_excitation(angular_freq_list):
         
     return T
 
-def poincare_map_periodic_excitation(result, integration_result, 
-                                     current_P, current_Div, current_step, pp, 
-                                     nP_trans_end, section = 1):
-    # This function extracts the Poincaré map while the solution of the
-    # simulation is being performed
+def poincare_map_periodic_excitation(sol: NDArray[np.float64], 
+                                     nP: int, 
+                                     nDiv: int, 
+                                     P_transient_ends: int, 
+                                     section: int = 1) -> NDArray[np.float64]:
+    # --------------------------------------------------------------------------
+    # This function extracts the Poincaré map of the solution obtained by a 
+    # fixed-step solver of a periodically excited dynamical system
     # --------------------------------------------------------------------------
     # Description of function arguments:
-    # result:             matrix that contains the result of the poincaré map
-    # integration_result: matrix that contains the result of the integration
-    # current_P:          current forcing period of analysis
-    # current_Div:        current division of the forcing period
-    # current_step:       current_step in the analysis
-    # pp:                 monitor of the position in the result vector
-    # nP_trans_end:       forcing period that the transient state ends
-    # section:            Poincaré section (must be a value between 0 and nDiv)
+    # sol:              array with system solution (time + state variables)
+    # nP:               number of excitation periods
+    # nDiV:             number of steps per excitation period
+    # P_transient_ends: excitation period when the transient state ends
+    # section:          Poincaré section (value between 0 and nDiv)
     # --------------------------------------------------------------------------
-    # If the current period is greater or equal the nP_trans_end   
-    if (current_P >= nP_trans_end):  
-        # Determine poincaré Section (where in a single period the values of 
-        # the poincaré map will be selected)
-        if (current_Div == section):
-            # Put the result of the integration in the section into the result
-            # of the Poincaré Map              
-            result[pp, :] = integration_result[current_step, :]
-            # Advance one position in the Poincaré result matrix
-            pp += 1
-    
-    # Returns the index of the poincaré result matrix, and the result matrix            
-    return pp, result
-
-def integrate_and_poincare_map(nP, nDiv, t0, dt, x0, func, p, nP_transient_end):
-    # This function solves the system of ODEs and extracts the Poincaré map 
-    # while the simulation is being performed
+    # Returns:
+    # Array containing the points of the Poincaré map (time + state variables)
     # --------------------------------------------------------------------------
-    # Description of function arguments:
-    # nP:                 number of forcing periods
-    # nDiv:               number of divisions per forcing period
-    # t0:                 initial time
-    # dt:                 time step
-    # x0:                 array with initial conditions of the state variables
-    # func:               1st order ODE system to be solved
-    # p:                  array with the contant parameters of the ODE system
-    # nP_trans_end:       forcing period that the transient state ends
-    # --------------------------------------------------------------------------
-    # Allocate arrays to store result of integration and poincaré map
-    int_result = np.zeros((nP*nDiv + 1, len(x0) + 1))
-    poinc_result = np.zeros((nP - nP_transient_end, len(x0) + 1))
-    # Assign the first row of int_result with the initial conditions and initial time
-    int_result[0, 0] = t0
-    int_result[0, 1:] = x0
-    # Integrate over the number of steps, but splitting between number of periods (nP)
-    # and divisions per period (nDiv)
-    i = 0
-    pp = 0;
-    for j in range(nP):
+    # Determine the poincaré 
+    poinc_map_size = nP - P_transient_ends
+    poinc_result = np.zeros((poinc_map_size, sol.shape[1]))
+    start_index_solution = P_transient_ends*nDiv
+    # Start looping through the solution starting at index where transient ends    
+    for j in range(poinc_map_size):
         for k in range(nDiv):
-            # Solve for state variables
-            int_result[i + 1, 1:] = rk4(func, int_result[i, 1:], dt, 
-                                        int_result[i, 0], p)
-            pp, poinc_result = poincare_map_periodic_excitation(poinc_result, 
-                                                                int_result, 
-                                                                j, k, i, pp, 
-                                                                nP_transient_end)
-            # Update time
-            int_result[i + 1, 0] = int_result[i, 0] + dt
-            # Update counter
-            i += 1
+            # Determine Poincaré section (where in a single period the values
+            # of the Poincaré map will be selected)
+            if k == section:
+                # Save the result as part of the Poincaré map
+                poinc_result[j, :] = sol[start_index_solution + j*nDiv + k, :]
+                
+    return poinc_result
 
-    return int_result, poinc_result
-
+def poincare_map_autonomous(result, section = 1):
+    # S is the location of section
+    S = result[-1, -1] - section
+    # Monitor if signal of S changes
+    
+    # 
+    dx = -S
+"""    
 def bifurcation_diagram(Cpar_index, Cpar_i, Cpar_f, bifurc_steps, nP, nDiv, nP_transient_end, t0, init_cond, p, 
                         odesystem, bifurc_mode = "follow_attractor"):
     # This function constructs the bifurcation diagram of the ODE system 
@@ -203,25 +196,36 @@ def bifurcation_diagram(Cpar_index, Cpar_i, Cpar_f, bifurc_steps, nP, nDiv, nP_t
         
     # Return the row monitor and the result of the bifurcation
     return n, bifurc_result
+"""
 # ------------------------------------------------------------------------------
 # Save results functions
 # ------------------------------------------------------------------------------
-def save_timeseries_data(results, odesystem, extension = "csv", decimal_precision = 10):
+def save_timeseries_data(sol: NDArray[np.float64], 
+                         odesystem: Callable[[NDArray[np.float64], float, 
+                                              NDArray[np.float64]], 
+                                             NDArray[np.float64]], 
+                         extension: str = "csv", 
+                         decimal_precision: int = 10):
     # Determine the number of state variables
-    nvars = results.shape[1] - 1 # Subtract 1 to account for the time column
+    nvars = sol.shape[1] - 1 # Subtract 1 to account for the time column
     # Open the file
     file = open(f"timeseries_{odesystem.__name__}.{extension}", "w")
     # Write the header
     header = " ".join(["time"] + [f"x[{i}]" for i in range(nvars)]) + "\n"
     file.write(header)     
     # Write the data
-    for row in results:
+    for row in sol:
         line = " ".join([f"{value:.{decimal_precision}f}" for value in row]) + "\n"
         file.write(line)
     
     file.close()
     
-def save_poincare_map_data(results, odesystem, extension = "csv", decimal_precision = 10):
+def save_poincare_map_data(results: NDArray[np.float64], 
+                           odesystem: Callable[[NDArray[np.float64], float, 
+                                                NDArray[np.float64]], 
+                                               NDArray[np.float64]], 
+                           extension: str = "csv", 
+                           decimal_precision: int = 10):
     # Determine the number of state variables
     nvars = results.shape[1] - 1 # Subtract 1 to account for the time column
     # Open the file
@@ -238,15 +242,15 @@ def save_poincare_map_data(results, odesystem, extension = "csv", decimal_precis
 # ------------------------------------------------------------------------------
 # Data visualization functions
 # ------------------------------------------------------------------------------
-def get_tspan_indexes(result, t_span):
+def get_tspan_indexes(sol, t_span):
     if t_span is None:
         # Full interval
         ti_index = 0
         tf_index = -1
     else:
         # Find the closest indexes to the given time_interal
-        ti_index = np.abs(result[:, 0] - t_span[0]).argmin()
-        tf_index = np.abs(result[:, 0] - t_span[1]).argmin()
+        ti_index = np.abs(sol[:, 0] - t_span[0]).argmin()
+        tf_index = np.abs(sol[:, 0] - t_span[1]).argmin()
         
     return ti_index, tf_index
 

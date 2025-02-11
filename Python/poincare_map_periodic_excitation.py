@@ -45,9 +45,9 @@ Created: 7 Apr 2024
 Last Update: 6 Feb 2025 
 --------------------------------------------------------------------------------------------------------------
 """
-# ============================================================================== 
+# ==============================================================================
 # Load Libraries
-# ============================================================================== 
+# ==============================================================================
 import numpy as np                # famous library for scientific computing   
 import matplotlib.pyplot as plt   # famous library for plotting
 from include.nldyn import *       # custom library for nonlinear analysis 
@@ -83,21 +83,21 @@ if __name__=='__main__':
     # --------------------------------------------------------------------------
     # Input (simulation parameters)                                                                 
     # --------------------------------------------------------------------------
-    nP     = 1000                     # number of forcing periods
-    nDiv   = 1000                     # number of divisions per forcing period
-    N      = nP*nDiv                  # number of steps for the integration
-    t0     = 0.0                      # initial time
-    dt     = (2*np.pi/(Omega*nDiv))   # time step
-    tf     = nP*2*np.pi/Omega         # final time
-    N_tran = int(0.75*N)              # step in which the transient state ends 
+    nP      = 1000                     # number of forcing periods
+    nDiv    = 1000                     # number of divisions per forcing period
+    N       = nP*nDiv                  # number of steps for the integration
+    T       = define_period_of_excitation(Omega) # period of excitation
+    t0      = 0.0                      # initial time
+    dt      = T/nDiv                   # time step 
+    tf      = N*dt                     # final time
+    N_tran  = int(0.75*N)              # step in which the transient state ends 
     nP_tran = int(0.75*nP)            # period in which the transient state ends   
-    init_cond = np.array([np.sqrt(-alpha/beta), 0.0, 0.0]) # initial conditions
+    IC      = np.array([np.sqrt(-alpha/beta), 0.0, 0.0]) # initial conditions
     # --------------------------------------------------------------------------
     # Solution                              
     # --------------------------------------------------------------------------
-    int_result, poinc_result = integrate_and_poincare_map(nP, nDiv, t0, dt, 
-                                                          init_cond, odesystem, 
-                                                          p, nP_tran)
+    int_result = integrate(t0, dt, N, IC, odesystem, p)
+    poinc_result = poincare_map_periodic_excitation(int_result, nP, nDiv, nP_tran)
     # --------------------------------------------------------------------------
     # Save the solution                              
     # --------------------------------------------------------------------------

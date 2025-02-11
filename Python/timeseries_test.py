@@ -28,20 +28,17 @@ if __name__=='__main__':
     # --------------------------------------------------------------------------
     # Input (system constant parameters)                                                                 
     # --------------------------------------------------------------------------
-    odesystem = lorenz
-    sigma = 10.0                      
-    rho   = 24.0
-    beta  = 8.0/3.0                                        
-    p = np.array([sigma, rho, beta]) # Define parameter array in the same order 
+    odesystem = henon_heiles                                        
+    p = np.array([ ]) # Define parameter array in the same order 
                                      # defined in system function declaration
     # --------------------------------------------------------------------------
     # Input (simulation parameters)                                                                 
     # --------------------------------------------------------------------------
     t0     = 0.0                           # initial time
     dt     = 0.01                          # time step
-    tf     = 100.0                         # final time 
-    N      = int(tf/dt)                    # number of integration time steps
-    IC     = np.array([0.0, 1.0, 1.05])    # initial conditions                              
+    tf     = 500.0                         # final time 
+    N      = int(tf/dt)                       # number of integration time steps
+    IC     = np.array([0.06, 0.1, -0.2, -0.2])    # initial conditions                              
     # --------------------------------------------------------------------------
     # Solution                              
     # --------------------------------------------------------------------------
